@@ -240,12 +240,12 @@ if uploaded_file:
 
 # 顯示最近的輸出文件
 if recent_summaries:
-    st.sidebar.header("最近的輸出文件")
+    st.markdown("## 最近的輸出文件")
     for summary_filename, refined_summary, formatted_final_summary in recent_summaries:
-        with st.sidebar.expander(summary_filename):
-            st.sidebar.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+        with st.expander(summary_filename):
+            st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
             with open(summary_filename, "rb") as f:
                 bytes_data = f.read()
                 b64 = base64.b64encode(bytes_data).decode()
                 href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
-                st.sidebar.markdown(href, unsafe_allow_html=True)
+                st.markdown(href, unsafe_allow_html=True)
