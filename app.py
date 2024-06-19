@@ -91,6 +91,9 @@ Please ensure the following text follows a consistent Markdown format:
 Please reformat the text for consistency:
 """
 
+# 最近的輸出文件列表
+recent_summaries = []
+
 # Streamlit 應用介面
 st.title("😴 It's time to go to bed")
 
@@ -217,6 +220,11 @@ if uploaded_file:
         with open(summary_filename, "w", encoding="utf-8") as f:
             f.write(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
 
+        # 將文件名稱和內容加入最近的摘要列表
+        recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
+        if len(recent_summaries) > 5:
+            recent_summaries.pop(0)
+
         # 顯示摘要並提供下載連結
         st.header("文獻分析")
         st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
@@ -229,3 +237,15 @@ if uploaded_file:
             b64 = base64.b64encode(bytes_data).decode()
             href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
             st.markdown(href, unsafe_allow_html=True)
+
+# 顯示最近的輸出文件
+if recent_summaries:
+    st.sidebar.header("最近的輸出文件")
+    for summary_filename, refined_summary, formatted_final_summary in recent_summaries:
+        with st.expander(summary_filename):
+            st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+            with open(summary_filename, "rb") as f:
+                bytes_data = f.read()
+                b64 = base64.b64encode(bytes_data).decode()
+                href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
+                st.markdown(href, unsafe_allow_html=True)
