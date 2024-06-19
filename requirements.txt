@@ -1,0 +1,6 @@
+nest-asyncio
+google-generativeai
+llama-parse
+tqdm
+streamlit
+pyngrok
