@@ -100,17 +100,20 @@ st.markdown("""
 """)
 st.warning("請上傳 PDF 格式的文獻，系統將自動分析文獻內容。過程需要幾分鐘，請耐心等候。完成後，您將可以預覽並下載生成的資訊。注意：因為 API 呼叫次數有限，若超過限制請稍後再試。另外，AI 可能出錯，請務必閱讀原文確認內容。")
 
+# 增加側邊欄
+st.sidebar.title("選項")
+
 # 增加模型選擇說明
-st.markdown("""
+st.sidebar.markdown("""
 **模型選擇說明：**
 - `gemini-1.5-flash`：此模型速度較快（建議使用）。
 - `gemini-1.5-pro`：此模型輸出品質可能較高，但處理時間也較長，且容易呼叫失敗。
 """)
 
 # 增加模型選擇選項
-model_name_option = st.selectbox("選擇模型", options=['gemini-1.5-flash', 'gemini-1.5-pro'])
+model_name_option = st.sidebar.selectbox("選擇模型", options=['gemini-1.5-flash', 'gemini-1.5-pro'])
 
-uploaded_file = st.file_uploader("上傳 PDF 文件", type=["pdf"])
+uploaded_file = st.sidebar.file_uploader("上傳 PDF 文件", type=["pdf"])
 if uploaded_file:
     # 獲取上傳的文件名稱並添加時間戳來生成唯一名稱
     original_filename = uploaded_file.name
