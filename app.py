@@ -72,14 +72,12 @@ Please ensure the following text follows a consistent Markdown format:
 **Example Format:**
 
 ❓ 問題 1： What problem does this paper aim to explore?
-   🤖 回答：  
-   [Detailed Answer]
-   > [Quote from the article]
+🤖 回答： [Detailed Answer]  
+> [Quote from the article]
 
 ❓ 問題 2： Why is this problem worth investigating?
-   🤖 回答：  
-   [Detailed Answer]
-   > [Quote from the article]
+🤖 回答： [Detailed Answer]
+> [Quote from the article]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
