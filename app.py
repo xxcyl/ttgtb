@@ -259,6 +259,14 @@ with main_tabs[0]:
                 b64 = base64.b64encode(bytes_data).decode()
                 href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
                 st.markdown(href, unsafe_allow_html=True)
+            # 在成功生成摘要文件後刪除 PDF 文件
+            try:
+                os.remove(filename)
+                st.success(f"已成功刪除上傳的 PDF 文件: {filename}")  # 可選：顯示刪除成功的訊息
+            except Exception as e:
+                st.warning(f"刪除上傳的 PDF 文件時發生錯誤: {e}")
+
+            
 
 # --- 歷史紀錄選項卡 ---
 with main_tabs[1]:
