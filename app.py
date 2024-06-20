@@ -10,7 +10,7 @@ from pyngrok import ngrok
 import base64
 import os
 import time
-import re
+import re  # 引入 re 模組用於正則表達式處理
 
 # 設定預設參數
 TEMPERATURE = 0.2
@@ -47,12 +47,6 @@ def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATUR
         return "API 呼叫次數已達上限，請稍後再試。"
     except Exception as e:
         return f"使用 Gemini API 生成摘要時發生錯誤: {e}"
-
-def sanitize_filename(filename):
-    """去除文件名中的emoji和標點符號"""
-    filename = re.sub(r'[^\w\s-]', '', filename).strip()
-    filename = re.sub(r'[-\s]+', '-', filename).strip('-_')
-    return filename
 
 # 定義問題列表
 Question = namedtuple("Question", ["number", "text"])
@@ -98,27 +92,29 @@ Please ensure the following text follows a consistent Markdown format:
 Please reformat the text for consistency:
 """
 
-# 初始化最近的輸出文件列表
+# 最近的輸出文件列表
 recent_summaries = []
-generated_files = []
 
 # 加載已生成的文件列表
 def load_generated_files():
-    global generated_files  # 宣告 generated_files 為全域變數
-    generated_files = []
     if os.path.exists("generated_files.txt"):
         with open("generated_files.txt", "r") as f:
-            generated_files = [line.strip() for line in f]
-        # 按照修改时间排序，最新的文件排在前面
-        generated_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-    return generated_files
+            return [line.strip() for line in f]
+    return []
+
+generated_files = load_generated_files()
 
 # 保存生成的文件名
 def save_generated_file(filename):
-    global generated_files  # 宣告 generated_files 為全域變數
     generated_files.append(filename)
     with open("generated_files.txt", "a") as f:
         f.write(f"{filename}\n")
+
+def sanitize_filename(filename):
+    """去除文件名中的emoji和标点符号"""
+    filename = re.sub(r'[^\w\s-]', '', filename).strip()
+    filename = re.sub(r'[-\s]+', '-', filename).strip('-_')
+    return filename
 
 # Streamlit 應用介面
 st.title("😴 It's time to go to bed")
@@ -129,35 +125,38 @@ st.markdown("""
 """)
 
 # --- 主頁面選項卡 ---
-main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
+main_tabs = st.tabs(["關於", "分析文獻", "歷史紀錄"])
+
+# --- 關於選項卡 ---
+with main_tabs[0]:
+    st.header("關於")
+    st.write("這個應用程式可以幫助您快速分析研究論文並生成摘要。")
+    # 在這裡添加更多關於應用程式的描述或說明。
 
 # --- 分析文獻選項卡 ---
-with main_tabs[0]:
-    st.markdown("""
-請在側邊攔上傳 PDF 格式的文獻，系統將自動分析文獻內容並生成相關資訊。過程需要幾分鐘，請耐心等候。完成後，您可以在「歷史紀錄」分頁找到生成的摘要（最多保留十筆）。  點擊文件名即可展開或下載摘要內容。""")
-    st.warning("""
-    ⚠️ **注意：**
-    * 因為 API 呼叫次數有限，若出現錯誤表示超過使用限制，請過幾分鐘後再試。
-    * AI 可能出錯，請務必閱讀原文確認內容。
-    """)
+with main_tabs[1]:
+    st.warning("請上傳 PDF 格式的文獻，系統將自動分析文獻內容。過程需要幾分鐘，請耐心等候。完成後，您將可以預覽並下載生成的資訊。注意：因為 API 呼叫次數有限，若超過限制請稍後再試。另外，AI 可能出錯，請務必閱讀原文確認內容。")
+
+    # **移除模型選擇選項，直接使用 gemini-1.5-flash**
     model_name_option = 'gemini-1.5-flash'
 
     uploaded_file = st.sidebar.file_uploader("上傳 PDF 文件", type=["pdf"])
     if uploaded_file:
-        # 獲取上傳的文件名稱並添加時間戳來生成唯一名稱
+        # 獲取上傳的文件名稱
         original_filename = uploaded_file.name
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        filename = f"{timestamp}_{original_filename}"
+        
+        # 獲取當前時間並格式化
+        timestamp = time.strftime("%Y%m%d_%H%M%S") 
 
         # 儲存上傳的文件
-        with open(filename, "wb") as f:
+        with open(original_filename, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
         # 解析 PDF 文件
         st.text("🕺🏻 解析 PDF 文件中...")
         try:
             with st.spinner('解析 PDF 文件中...'):
-                documents = parser.load_data(filename)
+                documents = parser.load_data(original_filename)
                 content = documents[0].get_content()
         except Exception as e:
             st.error(f"解析 PDF 文件時發生錯誤: {e}")
@@ -211,29 +210,79 @@ with main_tabs[0]:
             # 更新進度條
             progress_bar.progress((idx + 1) / total_groups)
 
-        # 合併所有回答
-        summary_content = "\n".join(all_answers)
+        if not api_limit_reached:
+            # 合併所有答案
+            st.text("🕺🏻 合併所有答案中...")
+            final_summary = "\n\n".join(all_answers)
 
-        # 保存生成的摘要文件
-        summary_filename = f"{sanitize_filename(original_filename)}_summary_{timestamp}.md"
-        with open(summary_filename, "w") as f:
-            f.write(summary_content)
+            # 统一最终答案的排版
+            st.text("🕺🏻 統一排版中...")
+            formatted_final_summary = summarize_with_gemini(final_summary, format_instructions, model_name_option, temperature=0.0)
 
-        save_generated_file(summary_filename)
-        st.success(f"摘要生成完畢：{summary_filename}")
+            # 呼叫 Gemini API 做最後摘要
+            st.text("🤵🏻 呀勒呀勒，看不完的臭論文")
+            instructions_refined_summary = """
+            Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
+
+            **Output Format:**
+
+            ## [Title]\n
+
+            [Summary]
+
+            **Constraints:**
+
+            * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
+            * The abstract should be less than 500 words.
+            * Use Markdown format.
+            """
+            refined_summary = summarize_with_gemini(formatted_final_summary, instructions_refined_summary, model_name_option)
+
+            # 從 refined_summary 中提取標題並清理
+            title = refined_summary.split('\n')[0].replace('##', '').strip()
+            cleaned_title = sanitize_filename(title)
+
+            # 使用清理後的標題和時間戳生成文件名
+            summary_filename = f"{timestamp}_{cleaned_title}.md"
+
+            # 保存摘要到摘要文件
+            with open(summary_filename, "w", encoding="utf-8") as f:
+                f.write(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+
+            # 將文件名稱和內容加入最近的摘要列表
+            recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
+            save_generated_file(summary_filename)
+            if len(recent_summaries) > 5:
+                recent_summaries.pop(0)
+
+            # 顯示摘要並提供下載連結
+            st.header("文獻分析")
+            st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+
+            st.success(f"Gemini 整理後的重點已保存到：{summary_filename}")
+
+            # 提供下載超連結
+            with open(summary_filename, "rb") as f:
+                bytes_data = f.read()
+                b64 = base64.b64encode(bytes_data).decode()
+                href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
+                st.markdown(href, unsafe_allow_html=True)
 
 # --- 歷史紀錄選項卡 ---
-with main_tabs[1]:
-    st.markdown("""
-### 最近生成的摘要
-    """)
-    generated_files = load_generated_files()
-    for filename in generated_files[:10]:  # 顯示最近十筆
-        with st.expander(filename):
-            with open(filename, "r") as f:
-                content = f.read()
-            st.markdown(content)
-            # 添加下載按鈕
-            b64 = base64.b64encode(content.encode()).decode()  # 將檔案內容進行 base64 編碼
-            href = f'<a href="data:text/markdown;base64,{b64}" download="{filename}">下載摘要</a>'
-            st.markdown(href, unsafe_allow_html=True)
+with main_tabs[2]:
+    st.header("歷史紀錄")
+
+    if generated_files:
+        for file in generated_files:
+            with st.expander(file):
+                with open(file, "r", encoding="utf-8") as f:
+                    file_content = f.read()
+                st.markdown(file_content)
+                # 提供下載連結
+                with open(file, "rb") as f:
+                    bytes_data = f.read()
+                    b64 = base64.b64encode(bytes_data).decode()
+                    href = f'<a href="data:file/markdown;base64,{b64}" download="{file}">點擊此處下載摘要文件 ({file})</a>'
+                    st.markdown(href, unsafe_allow_html=True)
+    else:
+        st.info("目前沒有歷史紀錄。")
