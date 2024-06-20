@@ -98,11 +98,13 @@ Please ensure the following text follows a consistent Markdown format:
 Please reformat the text for consistency:
 """
 
-# 最近的輸出文件列表
+# 初始化最近的輸出文件列表
 recent_summaries = []
+generated_files = []
 
 # 加載已生成的文件列表
 def load_generated_files():
+    global generated_files  # 宣告 generated_files 為全域變數
     generated_files = []
     if os.path.exists("generated_files.txt"):
         with open("generated_files.txt", "r") as f:
@@ -113,6 +115,7 @@ def load_generated_files():
 
 # 保存生成的文件名
 def save_generated_file(filename):
+    global generated_files  # 宣告 generated_files 為全域變數
     generated_files.append(filename)
     with open("generated_files.txt", "a") as f:
         f.write(f"{filename}\n")
@@ -208,84 +211,29 @@ with main_tabs[0]:
             # 更新進度條
             progress_bar.progress((idx + 1) / total_groups)
 
-        if not api_limit_reached:
-            # 合併所有答案
-            st.text("🕺🏻 合併所有答案中...")
-            final_summary = "\n\n".join(all_answers)
+        # 合併所有回答
+        summary_content = "\n".join(all_answers)
 
-            # 统一最终答案的排版
-            st.text("🕺🏻 統一排版中...")
-            formatted_final_summary = summarize_with_gemini(final_summary, format_instructions, model_name_option, temperature=0.0)
+        # 保存生成的摘要文件
+        summary_filename = f"{sanitize_filename(original_filename)}_summary_{timestamp}.md"
+        with open(summary_filename, "w") as f:
+            f.write(summary_content)
 
-            # 呼叫 Gemini API 做最後摘要
-            st.text("🤵🏻 呀勒呀勒，看不完的臭論文")
-            instructions_refined_summary = """
-            Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
+        save_generated_file(summary_filename)
+        st.success(f"摘要生成完畢：{summary_filename}")
 
-            **Output Format:**
-
-            ## [Title]\n
-
-            [Summary]
-
-            **Constraints:**
-
-            * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
-            * The abstract should be less than 500 words.
-            * Use Markdown format.
-            """
-            refined_summary = summarize_with_gemini(formatted_final_summary, instructions_refined_summary, model_name_option)
-
-            # 從 refined_summary 中提取標題並清理
-            title = refined_summary.split('\n')[0].replace('##', '').strip()  
-            cleaned_title = sanitize_filename(title)
-
-            # 使用清理後的標題作為檔名
-            summary_filename = f"{timestamp}_{cleaned_title}.md"
-
-            # 保存摘要到摘要文件
-            with open(summary_filename, "w", encoding="utf-8") as f:
-                f.write(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
-
-            # 將文件名稱和內容加入最近的摘要列表
-            recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
-            save_generated_file(summary_filename)
-            if len(recent_summaries) > 5:
-                recent_summaries.pop(0)
-
-            # 顯示摘要並提供下載連結
-            st.header("文獻分析")
-            st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
-
-            st.success(f"Gemini 整理後的重點已保存到：{summary_filename}")
-
-            # 提供下載超連結
-            with open(summary_filename, "rb") as f:
-                bytes_data = f.read()
-                b64 = base64.b64encode(bytes_data).decode()
-                href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
-                st.markdown(href, unsafe_allow_html=True)
-                     
 # --- 歷史紀錄選項卡 ---
 with main_tabs[1]:
-    st.header("歷史紀錄")
-
+    st.markdown("""
+### 最近生成的摘要
+    """)
     generated_files = load_generated_files()
-
-    # 只顯示最多十筆歷史記錄
-    displayed_files = generated_files[:10]
-
-    if displayed_files:
-        for file in displayed_files:
-            with st.expander(file):
-                with open(file, "r", encoding="utf-8") as f:
-                    file_content = f.read()
-                st.markdown(file_content)
-                # 提供下載連結
-                with open(file, "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:file/markdown;base64,{b64}" download="{file}">點擊此處下載摘要文件 ({file})</a>'
-                    st.markdown(href, unsafe_allow_html=True)
-    else:
-        st.info("目前沒有歷史紀錄。")
+    for filename in generated_files[:10]:  # 顯示最近十筆
+        with st.expander(filename):
+            with open(filename, "r") as f:
+                content = f.read()
+            st.markdown(content)
+            # 添加下載按鈕
+            b64 = base64.b64encode(content.encode()).decode()  # 將檔案內容進行 base64 編碼
+            href = f'<a href="data:text/markdown;base64,{b64}" download="{filename}">下載摘要</a>'
+            st.markdown(href, unsafe_allow_html=True)
