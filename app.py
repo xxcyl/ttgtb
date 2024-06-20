@@ -10,7 +10,7 @@ from pyngrok import ngrok
 import base64
 import os
 import time
-import re  # 引入 re 模組用於正則表達式處理
+import re 
 
 # 設定預設參數
 TEMPERATURE = 0.2
@@ -48,16 +48,9 @@ def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATUR
 Question = namedtuple("Question", ["number", "text"])
 
 all_questions = [
-    Question(1, "What problem does this paper aim to explore?"),
-    Question(2, "Why is this problem worth investigating?"),
-    Question(3, "What are the main findings and contributions of this research?"),
-    Question(4, "What methods and techniques did the researchers use to conduct this study?"),
-    Question(5, "What are the key theoretical foundations of this research?"),
-    Question(6, "What data or samples were used in the study, and what are their characteristics?"),
-    Question(7, "What is the reliability and statistical significance of the research findings?"),
-    Question(8, "What challenges were encountered during the research process, and how were they overcome?"),
-    Question(9, "How can the research findings be applied in practice or impact related fields?"),
-    Question(10, "What are the limitations of the research, and what are the directions for future research?")
+    Question(1, "What problem does this paper aim to explore? Why is this problem worth investigating? What are the main findings and contributions of this research?"),
+    Question(2, "What methods and techniques did the researchers use to conduct this study? What are the key theoretical foundations of this research? What data or samples were used in the study, and what are their characteristics? What is the reliability and statistical significance of the research findings?"),
+    Question(3, "What challenges were encountered during the research process, and how were they overcome? How can the research findings be applied in practice or impact related fields? What are the limitations of the research, and what are the directions for future research?")
 ]
 
 # 用于统一排版的指令
@@ -119,7 +112,13 @@ st.markdown("""
 """)
 
 # --- 主頁面選項卡 ---
-main_tabs = st.tabs(["分析文獻", "歷史紀錄"]) # 移除 "關於" 選項卡
+main_tabs = st.tabs(["分析文獻", "歷史紀錄"]) 
+
+# --- 側邊欄選項 ---
+with st.sidebar:
+    st.title("設定")
+    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=0, 
+                             help="一次詢問所有問題可能會超過 API 的限制，建議分兩次詢問。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -154,13 +153,18 @@ with main_tabs[0]:
             st.error(f"解析 PDF 文件時發生錯誤: {e}")
             st.stop()
 
+        # 根據選擇的 API 呼叫次數調整問題列表
+        if num_requests == 1:
+            questions_to_ask = [Question(1, " ".join([q.text for q in all_questions]))] 
+        else:
+            questions_to_ask = all_questions
+
         # 分批詢問問題並合併結果
         all_answers = []
-        question_groups = [all_questions[i:i + 5] for i in range(0, len(all_questions), 5)]
-        total_groups = len(question_groups)
+        total_groups = len(questions_to_ask)
         progress_bar = st.progress(0)
         api_limit_reached = False
-        for idx, question_group in enumerate(question_groups):
+        for idx, question in enumerate(questions_to_ask):
             if api_limit_reached:
                 break
             st.text(f"🕺🏻 呼叫 Gemini API 中... （第 {idx + 1} 組問題，共 {total_groups} 組）")
@@ -170,8 +174,7 @@ with main_tabs[0]:
             **Questions:**
 
             """
-            for question in question_group:
-                instructions += f"{question.number}. **{question.text}**\n"
+            instructions += f"{question.number}. **{question.text}**\n"
 
             # 为每一组问题都加入输出格式示例
             instructions += """
@@ -263,7 +266,7 @@ with main_tabs[0]:
                 st.markdown(href, unsafe_allow_html=True)
 
 # --- 歷史紀錄選項卡 ---
-with main_tabs[1]:  # 注意索引更改為 1
+with main_tabs[1]: 
     st.header("歷史紀錄")
 
     if generated_files:
