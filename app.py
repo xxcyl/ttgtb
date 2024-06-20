@@ -50,16 +50,16 @@ Question = namedtuple("Question", ["number", "text"])
 # 將八個問題分成兩個列表
 question_groups = [
     [
-        Question(1, "Research Objective and Significance: What problem does this paper aim to explore, and why is this problem worth investigating?"),
-        Question(2, "Main Findings and Contributions: What are the main findings and contributions of this research, and what is their significance?"),
-        Question(3, "Research Methods and Data: What methods and techniques did the researchers use to conduct this study, and what data or samples were used?"),
-        Question(4, "Reliability and Statistical Significance of Findings: What is the reliability and statistical significance of the research findings?")
+        Question(1, "What problem does this paper aim to explore, and why is this problem worth investigating?"),
+        Question(2, "What are the main findings and contributions of this research, and what is their significance?"),
+        Question(3, "What methods and techniques did the researchers use to conduct this study, and what data or samples were used?"),
+        Question(4, "What is the reliability and statistical significance of the research findings?")
     ],
     [
-        Question(5, "Theoretical Foundations: What are the key theoretical foundations of this research?"),
-        Question(6, "Challenges and Solutions: What challenges were encountered during the research process, and how were they overcome?"),
-        Question(7, "Applications and Impact: How can the research findings be applied in practice or impact related fields?"),
-        Question(8, "Limitations and Future Directions: What are the limitations of the research, and what are the directions for future research?")
+        Question(5, "What are the key theoretical foundations of this research?"),
+        Question(6, "What challenges were encountered during the research process, and how were they overcome?"),
+        Question(7, "How can the research findings be applied in practice or impact related fields?"),
+        Question(8, "What are the limitations of the research, and what are the directions for future research?")
     ]
 ]
 
@@ -74,11 +74,11 @@ Please ensure the following text follows a consistent Markdown format:
 
 **Example Format:**
 
-❓ 問題 1： What problem does this paper aim to explore?
+❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?
 🤖 回答： [Detailed Answer]  
 > [Quote from the article]
 
-❓ 問題 2： Why is this problem worth investigating?
+❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?
 🤖 回答： [Detailed Answer]
 > [Quote from the article]
 
@@ -205,12 +205,12 @@ with main_tabs[0]:
 
                 ## 研究問答
 
-                **1.** What problem does this paper aim to explore?
+                **1.** What problem does this paper aim to explore, and why is this problem worth investigating?
                 **🤖 回答：**  
                 [Detailed Answer]
                 [Quote from the article]
 
-                **2.** Why is this problem worth investigating?
+                **2.** What are the main findings and contributions of this research, and what is their significance?
                 **🤖 回答：**  
                 [Detailed Answer]
                 [Quote from the article]
