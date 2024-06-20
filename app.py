@@ -41,6 +41,15 @@ def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATUR
             generation_config=genai.types.GenerationConfig(temperature=temperature)
         )
         pbar.update(1)
+        
+        # 计算 token 数
+        contents = content_types.Contents(parts=[
+        content_types.ContentPart(text=f"{instructions}\n\nArticle content:\n\n{text}")
+        ])
+        response = model.count_tokens(contents=contents)
+        token_count = response.total_tokens
+        print(f"此次呼叫消耗的 Token 數量: {token_count}")
+        
         return response.text
 
 # 定義問題列表
