@@ -47,10 +47,20 @@ def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATUR
 # 定義問題列表
 Question = namedtuple("Question", ["number", "text"])
 
-all_questions = [
-    Question(1, "What problem does this paper aim to explore? Why is this problem worth investigating? What are the main findings and contributions of this research?"),
-    Question(2, "What methods and techniques did the researchers use to conduct this study? What are the key theoretical foundations of this research? What data or samples were used in the study, and what are their characteristics? What is the reliability and statistical significance of the research findings?"),
-    Question(3, "What challenges were encountered during the research process, and how were they overcome? How can the research findings be applied in practice or impact related fields? What are the limitations of the research, and what are the directions for future research?")
+# 將八個問題分成兩個列表
+question_groups = [
+    [
+        Question(1, "Research Objective and Significance: What problem does this paper aim to explore, and why is this problem worth investigating?"),
+        Question(2, "Main Findings and Contributions: What are the main findings and contributions of this research, and what is their significance?"),
+        Question(3, "Research Methods and Data: What methods and techniques did the researchers use to conduct this study, and what data or samples were used?"),
+        Question(4, "Reliability and Statistical Significance of Findings: What is the reliability and statistical significance of the research findings?")
+    ],
+    [
+        Question(5, "Theoretical Foundations: What are the key theoretical foundations of this research?"),
+        Question(6, "Challenges and Solutions: What challenges were encountered during the research process, and how were they overcome?"),
+        Question(7, "Applications and Impact: How can the research findings be applied in practice or impact related fields?"),
+        Question(8, "Limitations and Future Directions: What are the limitations of the research, and what are the directions for future research?")
+    ]
 ]
 
 # 用于统一排版的指令
@@ -117,7 +127,7 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 # --- 側邊欄選項 ---
 with st.sidebar:
     st.title("設定")
-    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=0, 
+    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
                              help="一次詢問所有問題可能會超過 API 的限制，建議分兩次詢問。")
 
 # --- 分析文獻選項卡 ---
@@ -155,45 +165,58 @@ with main_tabs[0]:
 
         # 根據選擇的 API 呼叫次數調整問題列表
         if num_requests == 1:
-            questions_to_ask = [Question(1, " ".join([q.text for q in all_questions]))] 
+            questions_to_ask = [Question(1, " ".join([q.text for q in sum(question_groups, [])]))]
         else:
-            questions_to_ask = all_questions
+            questions_to_ask = sum(question_groups, [])
 
         # 分批詢問問題並合併結果
         all_answers = []
-        total_groups = len(questions_to_ask)
+        total_groups = len(questions_to_ask) if num_requests == 1 else len(question_groups)
         progress_bar = st.progress(0)
         api_limit_reached = False
-        for idx, question in enumerate(questions_to_ask):
+        for idx, question_group in enumerate(questions_to_ask if num_requests == 1 else question_groups):
             if api_limit_reached:
                 break
-            st.text(f"🕺🏻 呼叫 Gemini API 中... （第 {idx + 1} 組問題，共 {total_groups} 組）")
-            instructions = """
-            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. Do not translate or paraphrase the quotes.
 
-            **Questions:**
+            if num_requests == 1:
+                st.text(f"🕺🏻 呼叫 Gemini API 中...")
+                instructions = """
+                Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. Do not translate or paraphrase the quotes.
 
-            """
-            instructions += f"{question.number}. **{question.text}**\n"
+                **Questions:**
 
-            # 为每一组问题都加入输出格式示例
-            instructions += """
-            **Output Format Example:**
+                """
+                instructions += f"{question_group.number}. **{question_group.text}**\n"
+                answers = summarize_with_gemini(content, instructions, model_name_option)
+            else:
+                st.text(f"🕺🏻 呼叫 Gemini API 中... （第 {idx + 1} 組問題，共 {total_groups} 組）")
+                instructions = """
+                Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. Do not translate or paraphrase the quotes.
 
-            ## 研究問答
+                **Questions:**
 
-            **1.** What problem does this paper aim to explore?
-              **🤖 回答：**  
-              [Detailed Answer]
-              [Quote from the article]
+                """
+                for question in question_group:
+                    instructions += f"{question.number}. **{question.text}**\n"
 
-            **2.** Why is this problem worth investigating?
-              **🤖 回答：**  
-              [Detailed Answer]
-              [Quote from the article]
-            """
+                # 为每一组问题都加入输出格式示例
+                instructions += """
+                **Output Format Example:**
 
-            answers = summarize_with_gemini(content, instructions, model_name_option)
+                ## 研究問答
+
+                **1.** What problem does this paper aim to explore?
+                **🤖 回答：**  
+                [Detailed Answer]
+                [Quote from the article]
+
+                **2.** Why is this problem worth investigating?
+                **🤖 回答：**  
+                [Detailed Answer]
+                [Quote from the article]
+                """
+
+                answers = summarize_with_gemini(content, instructions, model_name_option)
             
             if "API 呼叫次數已達上限" in answers:
                 st.error(answers)
