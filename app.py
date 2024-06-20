@@ -124,8 +124,7 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 with main_tabs[0]:
     st.warning("請上傳 PDF 格式的文獻，系統將自動分析文獻內容。過程需要幾分鐘，請耐心等候。完成後，您將可以預覽並下載生成的資訊。⚠ 注意：因為 API 呼叫次數有限，若出現錯誤表示超過使用限制，請過幾分鐘後再試。另外，AI 可能出錯，請務必閱讀原文確認內容。")
     
-    # 增加模型選擇選項
-    model_name_option = st.sidebar.selectbox("選擇模型", options=['gemini-1.5-flash'])
+    model_name_option = 'gemini-1.5-flash'
 
     uploaded_file = st.sidebar.file_uploader("上傳 PDF 文件", type=["pdf"])
     if uploaded_file:
