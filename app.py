@@ -103,12 +103,13 @@ recent_summaries = []
 
 # 加載已生成的文件列表
 def load_generated_files():
+    generated_files = []
     if os.path.exists("generated_files.txt"):
         with open("generated_files.txt", "r") as f:
-            return [line.strip() for line in f]
-    return []
-
-generated_files = load_generated_files()
+            generated_files = [line.strip() for line in f]
+        # 按照修改时间排序，最新的文件排在前面
+        generated_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+    return generated_files
 
 # 保存生成的文件名
 def save_generated_file(filename):
@@ -259,21 +260,18 @@ with main_tabs[0]:
                 b64 = base64.b64encode(bytes_data).decode()
                 href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
                 st.markdown(href, unsafe_allow_html=True)
-            # 在成功生成摘要文件後刪除 PDF 文件
-            try:
-                os.remove(filename)
-                st.success(f"已成功刪除上傳的 PDF 文件: {filename}")  # 可選：顯示刪除成功的訊息
-            except Exception as e:
-                st.warning(f"刪除上傳的 PDF 文件時發生錯誤: {e}")
-
-            
-
+                     
 # --- 歷史紀錄選項卡 ---
 with main_tabs[1]:
     st.header("歷史紀錄")
 
-    if generated_files:
-        for file in generated_files:
+    generated_files = load_generated_files()
+
+    # 只顯示最多十筆歷史記錄
+    displayed_files = generated_files[:10]
+
+    if displayed_files:
+        for file in displayed_files:
             with st.expander(file):
                 with open(file, "r", encoding="utf-8") as f:
                     file_content = f.read()
