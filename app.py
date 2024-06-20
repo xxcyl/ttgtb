@@ -137,7 +137,7 @@ with main_tabs[0]:
     if uploaded_file:
         # 獲取上傳的文件名稱並添加時間戳來生成唯一名稱
         original_filename = uploaded_file.name
-        timestamp = int(time.time())
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_{original_filename}"
 
         # 儲存上傳的文件
