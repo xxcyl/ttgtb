@@ -28,25 +28,20 @@ parser = LlamaParse(
 
 def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATURE):
     """使用 Gemini API 生成摘要"""
-    try:
-        with tqdm(total=1, desc="Gemini API 處理中") as pbar:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(
-                f"""
-                  {instructions}
+    with tqdm(total=1, desc="Gemini API 處理中") as pbar:
+        model = genai.GenerativeModel(model_name)
+        response = model.generate_content(
+            f"""
+              {instructions}
 
-                  Article content:
-                  \n\n
-                  {text}
-                  """,
-                generation_config=genai.types.GenerationConfig(temperature=temperature)
-            )
-            pbar.update(1)
-            return response.text
-    except genai.errors.ResourceExhaustedError:
-        return "API 呼叫次數已達上限，請稍後再試。"
-    except Exception as e:
-        return f"使用 Gemini API 生成摘要時發生錯誤: {e}"
+              Article content:
+              \n\n
+              {text}
+              """,
+            generation_config=genai.types.GenerationConfig(temperature=temperature)
+        )
+        pbar.update(1)
+        return response.text
 
 # 定義問題列表
 Question = namedtuple("Question", ["number", "text"])
