@@ -10,6 +10,7 @@ from pyngrok import ngrok
 import base64
 import os
 import time
+import re
 
 # 設定預設參數
 TEMPERATURE = 0.2
@@ -46,6 +47,12 @@ def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATUR
         return "API 呼叫次數已達上限，請稍後再試。"
     except Exception as e:
         return f"使用 Gemini API 生成摘要時發生錯誤: {e}"
+
+def sanitize_filename(filename):
+    """去除文件名中的emoji和標點符號"""
+    filename = re.sub(r'[^\w\s-]', '', filename).strip()
+    filename = re.sub(r'[-\s]+', '-', filename).strip('-_')
+    return filename
 
 # 定義問題列表
 Question = namedtuple("Question", ["number", "text"])
@@ -223,8 +230,12 @@ with main_tabs[0]:
             """
             refined_summary = summarize_with_gemini(formatted_final_summary, instructions_refined_summary, model_name_option)
 
-            # 使用原始檔案名稱來命名摘要文件
-            summary_filename = f"{timestamp}_{original_filename.replace('.pdf', '_summary.md')}"
+            # 從 refined_summary 中提取標題並清理
+            title = refined_summary.split('\n')[0].replace('##', '').strip()  
+            cleaned_title = sanitize_filename(title)
+
+            # 使用清理後的標題作為檔名
+            summary_filename = f"{timestamp}_{cleaned_title}.md"
 
             # 保存摘要到摘要文件
             with open(summary_filename, "w", encoding="utf-8") as f:
