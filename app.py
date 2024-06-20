@@ -173,6 +173,7 @@ with main_tabs[0]:
             for question in question_group:
                 instructions += f"{question.number}. **{question.text}**\n"
 
+            # 为每一组问题都加入输出格式示例
             instructions += """
             **Output Format Example:**
 
@@ -190,6 +191,7 @@ with main_tabs[0]:
             """
 
             answers = summarize_with_gemini(content, instructions, model_name_option)
+            
             if "API 呼叫次數已達上限" in answers:
                 st.error(answers)
                 api_limit_reached = True
