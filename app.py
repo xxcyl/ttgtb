@@ -94,6 +94,21 @@ Please reformat the text for consistency:
 # 最近的輸出文件列表
 recent_summaries = []
 
+# 加載已生成的文件列表
+def load_generated_files():
+    if os.path.exists("generated_files.txt"):
+        with open("generated_files.txt", "r") as f:
+            return [line.strip() for line in f]
+    return []
+
+generated_files = load_generated_files()
+
+# 保存生成的文件名
+def save_generated_file(filename):
+    generated_files.append(filename)
+    with open("generated_files.txt", "a") as f:
+        f.write(f"{filename}\n")
+
 # Streamlit 應用介面
 st.title("😴 It's time to go to bed")
 
@@ -222,6 +237,7 @@ if uploaded_file:
 
         # 將文件名稱和內容加入最近的摘要列表
         recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
+        save_generated_file(summary_filename)
         if len(recent_summaries) > 5:
             recent_summaries.pop(0)
 
@@ -249,3 +265,13 @@ if recent_summaries:
                 b64 = base64.b64encode(bytes_data).decode()
                 href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
                 st.markdown(href, unsafe_allow_html=True)
+
+# 顯示所有已生成的文件
+if generated_files:
+    st.markdown("## 所有已生成的文件")
+    for file in generated_files:
+        with open(file, "rb") as f:
+            bytes_data = f.read()
+            b64 = base64.b64encode(bytes_data).decode()
+            href = f'<a href="data:file/markdown;base64,{b64}" download="{file}">點擊此處下載摘要文件 ({file})</a>'
+            st.markdown(href, unsafe_allow_html=True)
