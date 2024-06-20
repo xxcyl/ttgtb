@@ -118,25 +118,12 @@ st.markdown("""
 """)
 
 # --- 主頁面選項卡 ---
-main_tabs = st.tabs(["關於", "分析文獻", "歷史紀錄"])
-
-# --- 關於選項卡 ---
-with main_tabs[0]:
-    st.header("關於")
-    st.write("這個應用程式可以幫助您快速分析研究論文並生成摘要。")
-    # 在這裡添加更多關於應用程式的描述或說明。
+main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 
 # --- 分析文獻選項卡 ---
-with main_tabs[1]:
+with main_tabs[0]:
     st.warning("請上傳 PDF 格式的文獻，系統將自動分析文獻內容。過程需要幾分鐘，請耐心等候。完成後，您將可以預覽並下載生成的資訊。注意：因為 API 呼叫次數有限，若超過限制請稍後再試。另外，AI 可能出錯，請務必閱讀原文確認內容。")
     
-    # 增加模型選擇說明
-    st.sidebar.markdown("""
-    **模型選擇說明：**
-    - `gemini-1.5-flash`：此模型速度較快（建議使用）。
-    - `gemini-1.5-pro`：此模型輸出品質可能較高，但處理時間也較長，且容易呼叫失敗。
-    """)
-
     # 增加模型選擇選項
     model_name_option = st.sidebar.selectbox("選擇模型", options=['gemini-1.5-flash', 'gemini-1.5-pro'])
 
@@ -264,7 +251,7 @@ with main_tabs[1]:
                 st.markdown(href, unsafe_allow_html=True)
 
 # --- 歷史紀錄選項卡 ---
-with main_tabs[2]:
+with main_tabs[1]:
     st.header("歷史紀錄")
 
     if generated_files:
