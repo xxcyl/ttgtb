@@ -65,13 +65,13 @@ Please ensure the following text follows a consistent Markdown format:
 
 **Example Format:**
 
-**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?**
-🤖： [Detailed Answer]  
-> [Quote from the article]
+**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
+🤖： [Detailed Answer] \n 
+[Quote from the article]
 
-**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?**
-🤖： [Detailed Answer]
-> [Quote from the article]
+**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
+🤖： [Detailed Answer] \n
+[Quote from the article]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
