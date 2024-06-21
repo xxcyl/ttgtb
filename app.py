@@ -147,15 +147,24 @@ with main_tabs[0]:
             instructions = """
             Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
             Base your answers on the provided article and use evidence from the text to support your points. 
+            
+            **Example Format:**
 
+            **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
+            🤖： [Detailed Answer]
+
+            **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
+            🤖： [Detailed Answer]
+            
             **Questions:**
-
+            
             """
             for question in questions_to_ask:
                 instructions += f"{question.number}. **{question.text}**\n"
 
             answers = summarize_with_gemini(content, instructions, model_name_option)
             all_answers.append(answers)
+            
 
         # 合併所有答案
         st.text("🕺🏻 合併所有答案中...")
