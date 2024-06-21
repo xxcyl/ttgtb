@@ -61,17 +61,17 @@ Please ensure the following text follows a consistent Markdown format:
 **Format Requirements:**
 1. Each question should start with "❓ 問題 [Number]：", followed by the question content.
 2. Each answer should start with "🤖：", followed by the answer content.
-3. After the detailed answer, provide a quote from the article. Quotes should start with "[原文出處]" and use Markdown's blockquote syntax with a single "> ".
+3. After the detailed answer, provide a quote from the article.
 
 **Example Format:**
 
 **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
 🤖： [Detailed Answer] \n 
-[Quote from the article]
+>[Quote from the article]
 
 **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
 🤖： [Detailed Answer] \n
-[Quote from the article]
+>[Quote from the article]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
@@ -151,6 +151,7 @@ with main_tabs[0]:
             with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
                 instructions = """
                 Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
+                Make sure to directly quote relevant parts from the article to support your answers.
 
                 **When quoting the article:**
 
