@@ -59,18 +59,18 @@ format_instructions = """
 Please ensure the following text follows a consistent Markdown format:
 
 **Format Requirements:**
-1. Each question should start with "**❓ 問題 [Number]：**", followed by the question content.
-2. Each answer should start with "**🤖 回答：**", followed by the answer content.
+1. Each question should start with "❓ 問題 [Number]：", followed by the question content.
+2. Each answer should start with "🤖：", followed by the answer content.
 3. After the detailed answer, provide a quote from the article. Quotes should start with "[原文出處]" and use Markdown's blockquote syntax with a single "> ".
 
 **Example Format:**
 
-**❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
-**🤖 回答：** [Detailed Answer]  
+**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?**
+🤖： [Detailed Answer]  
 > [Quote from the article]
 
-**❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
-**🤖 回答：** [Detailed Answer]
+**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?**
+🤖： [Detailed Answer]
 > [Quote from the article]
 
 **Notes:**
@@ -169,13 +169,13 @@ with main_tabs[0]:
 
                 ## 研究問答
 
-                **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
-                **🤖 回答：** [Detailed Answer]  
-                > [Quote from the article]
+                **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?**
+                [Detailed Answer]  
+                [Quote from the article]
 
-                **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
-                **🤖 回答：** [Detailed Answer]
-                > [Quote from the article]
+                **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?**
+                [Detailed Answer]
+                [Quote from the article]
                 """
                 answers = summarize_with_gemini(content, instructions, model_name_option)
                 all_answers.append(answers)
