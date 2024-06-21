@@ -10,7 +10,7 @@ from pyngrok import ngrok
 import base64
 import os
 import time
-import re 
+import re
 
 # 設定預設參數
 TEMPERATURE = 0.2
@@ -28,39 +28,37 @@ parser = LlamaParse(
 
 def summarize_with_gemini(text, instructions, model_name, temperature=TEMPERATURE):
     """使用 Gemini API 生成摘要"""
-    with tqdm(total=1, desc="Gemini API 處理中") as pbar:
-        model = genai.GenerativeModel(model_name)
-        response = model.generate_content(
-            f"""
-              {instructions}
+    try:
+        with tqdm(total=1, desc="Gemini API 處理中") as pbar:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(
+                f"""
+                  {instructions}
 
-              Article content:
-              \n\n
-              {text}
-              """,
-            generation_config=genai.types.GenerationConfig(temperature=temperature)
-        )
-        pbar.update(1)
-              
-        return response.text
+                  Article content:
+                  \n\n
+                  {text}
+                  """,
+                generation_config=genai.types.GenerationConfig(temperature=temperature)
+            )
+            pbar.update(1)
+            return response.text
+    except Exception as e:
+        return f"使用 Gemini API 生成摘要時發生錯誤: {e}"
 
 # 定義問題列表
 Question = namedtuple("Question", ["number", "text"])
 
-# 將八個問題分成兩個列表
-question_groups = [
-    [
-        Question(1, "What problem does this paper aim to explore, and why is this problem worth investigating?"),
-        Question(2, "What are the main findings and contributions of this research, and what is their significance?"),
-        Question(3, "What methods and techniques did the researchers use to conduct this study, and what data or samples were used?"),
-        Question(4, "What is the reliability and statistical significance of the research findings?")
-    ],
-    [
-        Question(5, "What are the key theoretical foundations of this research?"),
-        Question(6, "What challenges were encountered during the research process, and how were they overcome?"),
-        Question(7, "How can the research findings be applied in practice or impact related fields?"),
-        Question(8, "What are the limitations of the research, and what are the directions for future research?")
-    ]
+# 將八個問題合併成一個列表
+questions = [
+    Question(1, "What problem does this paper aim to explore, and why is this problem worth investigating?"),
+    Question(2, "What are the main findings and contributions of this research, and what is their significance?"),
+    Question(3, "What methods and techniques did the researchers use to conduct this study, and what data or samples were used?"),
+    Question(4, "What is the reliability and statistical significance of the research findings?"),
+    Question(5, "What are the key theoretical foundations of this research?"),
+    Question(6, "What challenges were encountered during the research process, and how were they overcome?"),
+    Question(7, "How can the research findings be applied in practice or impact related fields?"),
+    Question(8, "What are the limitations of the research, and what are the directions for future research?")
 ]
 
 # 用于统一排版的指令
@@ -122,13 +120,12 @@ st.markdown("""
 """)
 
 # --- 主頁面選項卡 ---
-main_tabs = st.tabs(["分析文獻", "歷史紀錄"]) 
+main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 
 # --- 側邊欄選項 ---
 with st.sidebar:
     st.title("設定")
-    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
-                             help="可自行嘗試效果差異。")
+    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, help="可自行嘗試效果差異。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -138,7 +135,7 @@ with main_tabs[0]:
     * 因為 API 呼叫次數有限，若出現錯誤表示超過使用限制，請過幾分鐘後再試。
     * AI 可能出錯，請務必閱讀原文確認內容。
     """)
-    # **移除模型選擇選項，直接使用 gemini-1.5-flash**
+    # 移除模型選擇選項，直接使用 gemini-1.5-flash
     model_name_option = 'gemini-1.5-flash'
 
     uploaded_file = st.sidebar.file_uploader("上傳 PDF 文件", type=["pdf"])
@@ -147,7 +144,7 @@ with main_tabs[0]:
         original_filename = uploaded_file.name
         
         # 獲取當前時間並格式化
-        timestamp = time.strftime("%Y%m%d_%H%M%S") 
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
 
         # 儲存上傳的文件
         with open(original_filename, "wb") as f:
@@ -165,16 +162,16 @@ with main_tabs[0]:
 
         # 根據選擇的 API 呼叫次數調整問題列表
         if num_requests == 1:
-            questions_to_ask = [Question(1, " ".join([q.text for q in sum(question_groups, [])]))]
+            questions_to_ask = [Question(1, " ".join([q.text for q in questions]))]
         else:
-            questions_to_ask = sum(question_groups, [])
+            questions_to_ask = [questions[:4], questions[4:]]
 
         # 分批詢問問題並合併結果
         all_answers = []
-        total_groups = len(questions_to_ask) if num_requests == 1 else len(question_groups)
+        total_groups = len(questions_to_ask)
         progress_bar = st.progress(0)
         api_limit_reached = False
-        for idx, question_group in enumerate(questions_to_ask if num_requests == 1 else question_groups):
+        for idx, question_group in enumerate(questions_to_ask):
             if api_limit_reached:
                 break
 
@@ -210,97 +207,64 @@ with main_tabs[0]:
                 > [Quote from the article]
 
                 **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
-                **🤖 回答：** [Detailed Answer]
+                **🤖 回答：** [Detailed Answer]  
                 > [Quote from the article]
                 """
 
+                # 呼叫 summarize_with_gemini 函數
                 answers = summarize_with_gemini(content, instructions, model_name_option)
+
+                if "超過使用限制" in answers:
+                    st.warning("超過 API 使用限制，請稍後再試。")
+                    api_limit_reached = True
+                    break
             
-            if "API 呼叫次數已達上限" in answers:
-                st.error(answers)
-                api_limit_reached = True
-                break
-            elif "使用 Gemini API 生成摘要時發生錯誤" in answers:
-                st.error(answers)
-                break
             all_answers.append(answers)
-
-            # 更新進度條
             progress_bar.progress((idx + 1) / total_groups)
-
+        
         if not api_limit_reached:
-            # 合併所有答案
-            st.text("🕺🏻 合併所有答案中...")
-            final_summary = "\n\n".join(all_answers)
+            # 合併所有回答
+            merged_answers = "\n\n".join(all_answers)
 
-            # 统一最终答案的排版
-            st.text("🕺🏻 統一排版中...")
-            formatted_final_summary = summarize_with_gemini(final_summary, format_instructions, model_name_option, temperature=0.0)
+            # 生成輸出文件名
+            sanitized_filename = sanitize_filename(original_filename)
+            output_filename = f"output_{sanitized_filename}_{timestamp}.md"
+            with open(output_filename, "w", encoding='utf-8') as f:
+                f.write(merged_answers)
 
-            # 呼叫 Gemini API 做最後摘要
-            st.text("🤵🏻 呀勒呀勒，看不完的臭論文")
-            instructions_refined_summary = """
-            Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
+            # 添加到歷史記錄中
+            save_generated_file(output_filename)
 
-            **Output Format:**
+            # 顯示結果
+            st.success("🎉 生成摘要成功！")
+            st.markdown("### 生成的摘要")
+            st.markdown(merged_answers)
 
-            ## [Title]\n
-
-            [Summary]
-
-            **Constraints:**
-
-            * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
-            * The abstract should be less than 500 words.
-            * Use Markdown format.
-            """
-            refined_summary = summarize_with_gemini(formatted_final_summary, instructions_refined_summary, model_name_option)
-
-            # 從 refined_summary 中提取標題並清理
-            title = refined_summary.split('\n')[0].replace('##', '').strip()
-            cleaned_title = sanitize_filename(title)
-
-            # 使用清理後的標題和時間戳生成文件名
-            summary_filename = f"{timestamp}_{cleaned_title}.md"
-
-            # 保存摘要到摘要文件
-            with open(summary_filename, "w", encoding="utf-8") as f:
-                f.write(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
-
-            # 將文件名稱和內容加入最近的摘要列表
-            recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
-            save_generated_file(summary_filename)
-            if len(recent_summaries) > 5:
-                recent_summaries.pop(0)
-
-            # 顯示摘要並提供下載連結
-            st.header("文獻分析")
-            st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
-
-            st.success(f"Gemini 整理後的重點已保存到：{summary_filename}")
-
-            # 提供下載超連結
-            with open(summary_filename, "rb") as f:
-                bytes_data = f.read()
-                b64 = base64.b64encode(bytes_data).decode()
-                href = f'<a href="data:file/markdown;base64,{b64}" download="{summary_filename}">點擊此處下載摘要文件 ({summary_filename})</a>'
+            # 提供下載連結
+            with open(output_filename, "rb") as file:
+                file_bytes = file.read()
+                b64 = base64.b64encode(file_bytes).decode()
+                href = f'<a href="data:text/markdown;base64,{b64}" download="{output_filename}">下載摘要文件</a>'
                 st.markdown(href, unsafe_allow_html=True)
 
 # --- 歷史紀錄選項卡 ---
-with main_tabs[1]: 
-    st.header("歷史紀錄")
+with main_tabs[1]:
+    st.markdown("""
+    ## 歷史紀錄
+
+    在這裡你可以查看和下載之前生成的摘要文件。
+    """)
 
     if generated_files:
-        for file in generated_files[-10:][::-1]:  # 只顯示最近十筆，最新的在上面
-            with st.expander(file):
-                with open(file, "r", encoding="utf-8") as f:
-                    file_content = f.read()
-                st.markdown(file_content)
-                # 提供下載連結
-                with open(file, "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:file/markdown;base64,{b64}" download="{file}">點擊此處下載摘要文件 ({file})</a>'
+        for filename in generated_files[-10:]:
+            with open(filename, "r", encoding='utf-8') as f:
+                content = f.read()
+                st.markdown(f"### {filename}")
+                st.markdown(content)
+                with open(filename, "rb") as file:
+                    file_bytes = file.read()
+                    b64 = base64.b64encode(file_bytes).decode()
+                    href = f'<a href="data:text/markdown;base64,{b64}" download="{filename}">下載摘要文件</a>'
                     st.markdown(href, unsafe_allow_html=True)
     else:
-        st.info("目前沒有歷史紀錄。")
+        st.markdown("目前沒有歷史紀錄。")
