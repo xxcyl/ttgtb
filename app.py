@@ -67,11 +67,11 @@ Please ensure the following text follows a consistent Markdown format:
 
 **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
 **🤖 回答：** [Detailed Answer]  
-> [Quote from the article, without translation or paraphrasing]
+> [Quote from the article]
 
 **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
 **🤖 回答：** [Detailed Answer]
-> [Quote from the article, without translation or paraphrasing]
+> [Quote from the article]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
@@ -119,7 +119,7 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 with st.sidebar:
     st.title("設定")
     num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
-                             help="可自行嘗試效果差異。")
+                             help="一次呼叫會將所有問題發送給 API，兩次呼叫則會將問題分兩次發送。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -144,30 +144,26 @@ with main_tabs[0]:
             documents = parser.load_data(original_filename)
             content = documents[0].get_content()
 
-        # 根據選擇的 API 呼叫次數調整詢問次數
-        if num_requests == 1:
-            num_iterations = 1
-        else:  # num_requests == 2
-            num_iterations = 2
-
-        # 呼叫 API 并合併結果
+        # 調整 API 呼叫邏輯
         all_answers = []
-        for i in range(num_iterations):
-            with st.spinner(f'🕺🏻 呼叫 Gemini API 中...（第 {i+1} 組問題）'):
-                start_index = i * 4
-                end_index = start_index + 4
-                current_questions = questions_to_ask[start_index:end_index]
-
+        if num_requests == 1:
+            # 一次詢問所有問題
+            with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
                 instructions = """
-                Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. Do not translate or paraphrase the quotes.
+                Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
+
+                **When quoting the article:**
+
+                * **Directly quote the relevant parts.**
+                * **Do not translate the quotes.**
+                * **Do not paraphrase the quotes.**
 
                 **Questions:**
 
                 """
-                for question in current_questions:
+                for question in questions_to_ask:
                     instructions += f"{question.number}. **{question.text}**\n"
 
-                # 为每一组问题都加入输出格式示例
                 instructions += """
                 **Output Format Example:**
 
@@ -175,14 +171,52 @@ with main_tabs[0]:
 
                 **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
                 **🤖 回答：** [Detailed Answer]  
-                > [Quote from the article, without translation or paraphrasing]
+                > [Quote from the article]
 
                 **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
                 **🤖 回答：** [Detailed Answer]
-                > [Quote from the article, without translation or paraphrasing]
+                > [Quote from the article]
                 """
                 answers = summarize_with_gemini(content, instructions, model_name_option)
                 all_answers.append(answers)
+        else:  # num_requests == 2
+            # 分兩次詢問，每次四個問題
+            for i in range(2):
+                with st.spinner(f'🕺🏻 呼叫 Gemini API 中...（第 {i+1} 組問題）'):
+                    start_index = i * 4
+                    end_index = start_index + 4
+                    current_questions = questions_to_ask[start_index:end_index]
+
+                    instructions = """
+                    Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
+
+                    **When quoting the article:**
+
+                    * **Directly quote the relevant parts.**
+                    * **Do not translate the quotes.**
+                    * **Do not paraphrase the quotes.**
+
+                    **Questions:**
+
+                    """
+                    for question in current_questions:
+                        instructions += f"{question.number}. **{question.text}**\n"
+
+                    instructions += """
+                    **Output Format Example:**
+
+                    ## 研究問答
+
+                    **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
+                    **🤖 回答：** [Detailed Answer]  
+                    > [Quote from the article]
+
+                    **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
+                    **🤖 回答：** [Detailed Answer]
+                    > [Quote from the article]
+                    """
+                    answers = summarize_with_gemini(content, instructions, model_name_option)
+                    all_answers.append(answers)
 
         # 合併所有答案
         st.text("🕺🏻 合併所有答案中...")
