@@ -59,19 +59,16 @@ format_instructions = """
 Please ensure the following text follows a consistent Markdown format:
 
 **Format Requirements:**
-1. Each question should start with "❓ 問題 [Number]：", followed by the question content.
-2. Each answer should start with "🤖：", followed by the answer content.
-3. After the detailed answer, provide a quote from the article.
+1. Each question should start with "**❓ 問題 [Number]：**", followed by the question content.
+2. Each answer should start with "**🤖 回答：**", followed by the answer content.
 
 **Example Format:**
 
-**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
-🤖： [Detailed Answer] \n 
->[Quote from the article]
+**❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
+**🤖 回答：** [Detailed Answer]  
 
-**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
-🤖： [Detailed Answer] \n
->[Quote from the article]
+**❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
+**🤖 回答：** [Detailed Answer]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
@@ -118,8 +115,8 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 # --- 側邊欄選項 ---
 with st.sidebar:
     st.title("設定")
-    num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
-                             help="一次呼叫會將所有問題發送給 API，兩次呼叫則會將問題分兩次發送。")
+    # num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
+    #                          help="一次呼叫會將所有問題發送給 API，兩次呼叫則會將問題分兩次發送。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -144,80 +141,20 @@ with main_tabs[0]:
             documents = parser.load_data(original_filename)
             content = documents[0].get_content()
 
-        # 調整 API 呼叫邏輯
+        #  一次詢問所有問題
         all_answers = []
-        if num_requests == 1:
-            # 一次詢問所有問題
-            with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
-                instructions = """
-                Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
-                Make sure to directly quote relevant parts from the article to support your answers.
+        with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
+            instructions = """
+            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. 
 
-                **When quoting the article:**
+            **Questions:**
 
-                * **Directly quote the relevant parts.**
-                * **Do not translate the quotes.**
-                * **Do not paraphrase the quotes.**
+            """
+            for question in questions_to_ask:
+                instructions += f"{question.number}. **{question.text}**\n"
 
-                **Questions:**
-
-                """
-                for question in questions_to_ask:
-                    instructions += f"{question.number}. **{question.text}**\n"
-
-                instructions += """
-                **Output Format Example:**
-
-                ## 研究問答
-
-                **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?**
-                [Detailed Answer]  
-                [Quote from the article]
-
-                **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?**
-                [Detailed Answer]
-                [Quote from the article]
-                """
-                answers = summarize_with_gemini(content, instructions, model_name_option)
-                all_answers.append(answers)
-        else:  # num_requests == 2
-            # 分兩次詢問，每次四個問題
-            for i in range(2):
-                with st.spinner(f'🕺🏻 呼叫 Gemini API 中...（第 {i+1} 組問題）'):
-                    start_index = i * 4
-                    end_index = start_index + 4
-                    current_questions = questions_to_ask[start_index:end_index]
-
-                    instructions = """
-                    Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
-
-                    **When quoting the article:**
-
-                    * **Directly quote the relevant parts.**
-                    * **Do not translate the quotes.**
-                    * **Do not paraphrase the quotes.**
-
-                    **Questions:**
-
-                    """
-                    for question in current_questions:
-                        instructions += f"{question.number}. **{question.text}**\n"
-
-                    instructions += """
-                    **Output Format Example:**
-
-                    ## 研究問答
-
-                    **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
-                    **🤖 回答：** [Detailed Answer]  
-                    > [Quote from the article]
-
-                    **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
-                    **🤖 回答：** [Detailed Answer]
-                    > [Quote from the article]
-                    """
-                    answers = summarize_with_gemini(content, instructions, model_name_option)
-                    all_answers.append(answers)
+            answers = summarize_with_gemini(content, instructions, model_name_option)
+            all_answers.append(answers)
 
         # 合併所有答案
         st.text("🕺🏻 合併所有答案中...")
