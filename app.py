@@ -74,12 +74,12 @@ Please ensure the following text follows a consistent Markdown format:
 
 **Example Format:**
 
-❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?
-🤖 回答： [Detailed Answer]  
+**❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
+**🤖 回答：** [Detailed Answer]  
 > [Quote from the article]
 
-❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?
-🤖 回答： [Detailed Answer]
+**❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
+**🤖 回答：** [Detailed Answer]
 > [Quote from the article]
 
 **Notes:**
@@ -128,7 +128,7 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 with st.sidebar:
     st.title("設定")
     num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
-                             help="一次詢問所有問題可能會超過 API 的限制，建議分兩次詢問。")
+                             help="可自行嘗試效果差異。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -205,15 +205,13 @@ with main_tabs[0]:
 
                 ## 研究問答
 
-                **1.** What problem does this paper aim to explore, and why is this problem worth investigating?
-                **🤖 回答：**  
-                [Detailed Answer]
-                [Quote from the article]
+                **❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
+                **🤖 回答：** [Detailed Answer]  
+                > [Quote from the article]
 
-                **2.** What are the main findings and contributions of this research, and what is their significance?
-                **🤖 回答：**  
-                [Detailed Answer]
-                [Quote from the article]
+                **❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
+                **🤖 回答：** [Detailed Answer]
+                > [Quote from the article]
                 """
 
                 answers = summarize_with_gemini(content, instructions, model_name_option)
