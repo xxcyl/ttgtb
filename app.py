@@ -59,16 +59,16 @@ format_instructions = """
 Please ensure the following text follows a consistent Markdown format:
 
 **Format Requirements:**
-1. Each question should start with "**❓ 問題 [Number]：**", followed by the question content.
-2. Each answer should start with "**🤖 回答：**", followed by the answer content.
+1. Each question should start with "❓ 問題 [Number]：", followed by the question content.
+2. Each answer should start with "🤖：", followed by the answer content.
 
 **Example Format:**
 
-**❓ 問題 1：** What problem does this paper aim to explore, and why is this problem worth investigating?
-**🤖 回答：** [Detailed Answer]  
+**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
+🤖： [Detailed Answer]
 
-**❓ 問題 2：** What are the main findings and contributions of this research, and what is their significance?
-**🤖 回答：** [Detailed Answer]
+**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
+🤖： [Detailed Answer]
 
 **Notes:**
 - Ensure the Markdown format is consistent throughout the text.
@@ -145,7 +145,8 @@ with main_tabs[0]:
         all_answers = []
         with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
             instructions = """
-            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Make sure to directly quote relevant parts from the article to support your answers. 
+            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
+            Base your answers on the provided article and use evidence from the text to support your points. 
 
             **Questions:**
 
