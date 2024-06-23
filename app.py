@@ -117,7 +117,7 @@ with main_tabs[0]:
             content = documents[0].get_content()
 
         #  一次詢問所有問題
-        all_answers = []
+        final_summary = "" # 使用字符串存储结果
         with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
             instructions = """
             Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Base your answers on the provided article and use evidence from the text to support your points. 
@@ -138,12 +138,7 @@ with main_tabs[0]:
             for question in questions_to_ask:
                 instructions += f"{question.number}. **{question.text}**\n"
 
-            answers = summarize_with_gemini(content, instructions, model_name_option)
-            all_answers.append(answers)
-
-        # 合併所有答案
-        with st.spinner('🕺🏻 合併所有答案中...'):
-            final_summary = "\n\n".join(all_answers)
+            final_summary = summarize_with_gemini(content, instructions, model_name_option) # 直接将结果存储到 final_summary
 
         # 呼叫 Gemini API 做最後摘要
         with st.spinner('🤵🏻 呀勒呀勒，看不完的臭論文'):
@@ -184,7 +179,6 @@ with main_tabs[0]:
             recent_summaries.pop(0)
 
         # 顯示摘要並提供下載連結
-        st.header("📝 文獻分析")
         st.markdown(f"{refined_summary}\n\n---\n\n{final_summary}")
 
         # 提供下載超連結
