@@ -120,25 +120,23 @@ with main_tabs[0]:
         all_answers = []
         with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
             instructions = """
-            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
-            Base your answers on the provided article and use evidence from the text to support your points. 
-            
+            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Base your answers on the provided article and use evidence from the text to support your points. 
+
             **Please format your response as follows:**
 
-            **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
-            🤖： [Detailed Answer]
+            **❓ 問題 1：** [問題內容]
+            **🤖 回答：** [答案內容]
 
-            **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
-            🤖： [Detailed Answer]
-            ...
-            
+            **❓ 問題 2：** [問題內容]
+            **🤖 回答：** [答案內容]
+
             **Do not include any other sections or headings.**
-            
+
             **Questions:**
-            
+
             """
             for question in questions_to_ask:
-                instructions += f"**❓ 問題 {question.number}： {question.text}**\n🤖： [Detailed Answer]\n"
+                instructions += f"{question.number}. **{question.text}**\n"
 
             answers = summarize_with_gemini(content, instructions, model_name_option)
             all_answers.append(answers)
