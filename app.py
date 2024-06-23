@@ -125,10 +125,10 @@ with main_tabs[0]:
             **Please format your response as follows:**
 
             **❓ 問題 1：** [問題內容]
-            **🤖 回答：** [答案內容]
+            **🤖：** [答案內容]
 
             **❓ 問題 2：** [問題內容]
-            **🤖 回答：** [答案內容]
+            **🤖：** [答案內容]
 
             **Do not include any other sections or headings.**
 
@@ -150,12 +150,14 @@ with main_tabs[0]:
             instructions_refined_summary = """
             Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
 
-            **Output Format:**
+            **Please format your response as follows:**
 
             ## [Title]\n
 
             [Summary]
 
+            **Do not include any other sections or headings.**
+            
             **Constraints:**
 
             * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
