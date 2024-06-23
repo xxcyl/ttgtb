@@ -148,13 +148,16 @@ with main_tabs[0]:
             Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. 
             Base your answers on the provided article and use evidence from the text to support your points. 
             
-            **Example Format:**
+            **Please format your response as follows:**
 
             **❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
             🤖： [Detailed Answer]
 
             **❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
             🤖： [Detailed Answer]
+            ...
+            
+            **Do not include any other sections or headings.**
             
             **Questions:**
             
