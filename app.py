@@ -124,10 +124,10 @@ with main_tabs[0]:
 
             **Please format your response as follows:**
 
-            **❓ 問題 1：** [問題內容]
-            **🤖：** [答案內容]
+            **❓ 問題 1：** [問題內容] \n
+            **🤖：** [答案內容] 
 
-            **❓ 問題 2：** [問題內容]
+            **❓ 問題 2：** [問題內容] \n
             **🤖：** [答案內容]
 
             **Do not include any other sections or headings.**
@@ -184,7 +184,7 @@ with main_tabs[0]:
             recent_summaries.pop(0)
 
         # 顯示摘要並提供下載連結
-        st.header("文獻分析")
+        st.header("📝 文獻分析")
         st.markdown(f"{refined_summary}\n\n---\n\n{final_summary}")
 
         # 提供下載超連結
