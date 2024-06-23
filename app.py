@@ -54,29 +54,6 @@ questions_to_ask = [
     Question(8, "What are the limitations of the research, and what are the directions for future research?")
 ]
 
-# 用于统一排版的指令
-format_instructions = """
-Please ensure the following text follows a consistent Markdown format:
-
-**Format Requirements:**
-1. Each question should start with "❓ 問題 [Number]：", followed by the question content.
-2. Each answer should start with "🤖：", followed by the answer content.
-
-**Example Format:**
-
-**❓ 問題 1： What problem does this paper aim to explore, and why is this problem worth investigating?** \n
-🤖： [Detailed Answer]
-
-**❓ 問題 2： What are the main findings and contributions of this research, and what is their significance?** \n
-🤖： [Detailed Answer]
-
-**Notes:**
-- Ensure the Markdown format is consistent throughout the text.
-- If encountering formatting errors or other issues, please review and adjust the format accordingly.
-
-Please reformat the text for consistency:
-"""
-
 # 最近的輸出文件列表
 recent_summaries = []
 
@@ -115,8 +92,6 @@ main_tabs = st.tabs(["分析文獻", "歷史紀錄"])
 # --- 側邊欄選項 ---
 with st.sidebar:
     st.title("設定")
-    # num_requests = st.radio("選擇 API 呼叫次數：", (1, 2), index=1, 
-    #                          help="一次呼叫會將所有問題發送給 API，兩次呼叫則會將問題分兩次發送。")
 
 # --- 分析文獻選項卡 ---
 with main_tabs[0]:
@@ -163,38 +138,33 @@ with main_tabs[0]:
             
             """
             for question in questions_to_ask:
-                instructions += f"{question.number}. **{question.text}**\n"
+                instructions += f"**❓ 問題 {question.number}： {question.text}**\n🤖： [Detailed Answer]\n"
 
             answers = summarize_with_gemini(content, instructions, model_name_option)
             all_answers.append(answers)
-            
 
         # 合併所有答案
-        st.text("🕺🏻 合併所有答案中...")
-        final_summary = "\n\n".join(all_answers)
-
-        # 统一最终答案的排版
-        st.text("🕺🏻 統一排版中...")
-        formatted_final_summary = summarize_with_gemini(final_summary, format_instructions, model_name_option, temperature=0.0)
+        with st.spinner('🕺🏻 合併所有答案中...'):
+            final_summary = "\n\n".join(all_answers)
 
         # 呼叫 Gemini API 做最後摘要
-        st.text("🤵🏻 呀勒呀勒，看不完的臭論文")
-        instructions_refined_summary = """
-        Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
+        with st.spinner('🤵🏻 呀勒呀勒，看不完的臭論文'):
+            instructions_refined_summary = """
+            Please condense the following content, which is a Q&A format summary of a research article, into a concise abstract in fluent and natural-sounding Traditional Chinese, reflecting common language use in Taiwan. Please also include a relevant emoji at the beginning of the abstract title.
 
-        **Output Format:**
+            **Output Format:**
 
-        ## [Title]\n
+            ## [Title]\n
 
-        [Summary]
+            [Summary]
 
-        **Constraints:**
+            **Constraints:**
 
-        * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
-        * The abstract should be less than 500 words.
-        * Use Markdown format.
-        """
-        refined_summary = summarize_with_gemini(formatted_final_summary, instructions_refined_summary, model_name_option)
+            * Only use information provided in the Q&A summary.  Do not introduce any external information or knowledge.
+            * The abstract should be less than 500 words.
+            * Use Markdown format.
+            """
+            refined_summary = summarize_with_gemini(final_summary, instructions_refined_summary, model_name_option)
 
         # 從 refined_summary 中提取標題並清理
         title = refined_summary.split('\n')[0].replace('##', '').strip()
@@ -205,17 +175,17 @@ with main_tabs[0]:
 
         # 保存摘要到摘要文件
         with open(summary_filename, "w", encoding="utf-8") as f:
-            f.write(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+            f.write(f"{refined_summary}\n\n---\n\n{final_summary}")
 
         # 將文件名稱和內容加入最近的摘要列表
-        recent_summaries.append((summary_filename, refined_summary, formatted_final_summary))
+        recent_summaries.append((summary_filename, refined_summary, final_summary))
         save_generated_file(summary_filename)
         if len(recent_summaries) > 5:
             recent_summaries.pop(0)
 
         # 顯示摘要並提供下載連結
         st.header("文獻分析")
-        st.markdown(f"{refined_summary}\n\n---\n\n{formatted_final_summary}")
+        st.markdown(f"{refined_summary}\n\n---\n\n{final_summary}")
 
         # 提供下載超連結
         with open(summary_filename, "rb") as f:
