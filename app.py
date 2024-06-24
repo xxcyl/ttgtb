@@ -121,7 +121,7 @@ with main_tabs[0]:
         final_summary = "" # 使用字符串存储结果
         with st.spinner('🕺🏻 呼叫 Gemini API 中...'):
             instructions = """
-            Analyze the following article and answer the questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Base your answers on the provided article and use evidence from the text to support your points. 
+            Analyze the following article and answer the following 10 questions in fluent and natural-sounding Traditional Chinese that reflects common language use in Taiwan. Base your answers on the provided article and use evidence from the text to support your points. You will generate two additional questions based on the article content. 
 
             **Please format your response as follows:**
 
@@ -131,19 +131,21 @@ with main_tabs[0]:
             **❓ 問題 2：** [問題內容] \n
             **🤖：** [答案內容]
 
-            **❓ 問題 9：** [AI generated question based on the article content] \n
-            **🤖：** [答案內容]
-            
-            **❓ 問題 10：** [AI generated question based on the article content] \n
-            **🤖：** [答案內容]
+            ...
+
+            **❓ 問題 9：** [AI generated question based on the article content]\n
+            **🤖：** [答案內容] 
+
+            **❓ 問題 10：** [AI generated question based on the article content]\n
+            **🤖：** [答案內容] 
 
             **Do not include any other sections or headings.**
 
-            **Questions:**
+            **Provided Questions:**
 
             """
-            for question in questions_to_ask:
-                instructions += f"{question.number}. **{question.text}**\n"
+            for i in range(len(questions_to_ask)): # 使用循环生成问题编号
+                instructions += f"{i+1}. **{questions_to_ask[i].text}**\n"
 
             final_summary = summarize_with_gemini(content, instructions, model_name_option) # 直接将结果存储到 final_summary
 
