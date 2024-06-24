@@ -131,6 +131,12 @@ with main_tabs[0]:
             **❓ 問題 2：** [問題內容] \n
             **🤖：** [答案內容]
 
+            **❓ 問題 9：** [AI generated question based on the article content] \n
+            **🤖：** [答案內容]
+            
+            **❓ 問題 10：** [AI generated question based on the article content] \n
+            **🤖：** [答案內容]
+
             **Do not include any other sections or headings.**
 
             **Questions:**
